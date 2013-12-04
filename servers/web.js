@@ -5,7 +5,7 @@ var browser_fingerprint = require('browser_fingerprint');
 var Mime = require('mime');
 
 var web = function(api, options, next){
-  
+
   //////////
   // INIT //
   //////////
@@ -33,7 +33,7 @@ var web = function(api, options, next){
   if(api.configData.servers.web.directoryFileType == null){
     api.configData.servers.web.directoryFileType = "index.html";
   }
-  
+
   //////////////////////
   // REQUIRED METHODS //
   //////////////////////
@@ -150,34 +150,37 @@ var web = function(api, options, next){
           responseHeaders.push([i, api.configData.servers.web.httpHeaders[i]]);
         }
       }
-             
+
       var remoteIP = req.connection.remoteAddress;
       var remotePort = req.connection.remotePort;
 
       if(req.headers['x-forwarded-for'] != null){
         var ip = req.headers['x-forwarded-for'].split(",")[0].split(":");
-        if(ip[0] != null){ 
-          remoteIP = ip[0]; 
+        if(ip[0] != null){
+          remoteIP = ip[0];
         }
-        if(ip[1] != null){ 
-          remotePort = ip[1]; 
+        if(ip[1] != null){
+          remotePort = ip[1];
         }else if(req.headers['x-forwarded-port'] != null){
           remotePort = req.headers['x-forwarded-port'];
         }
+
+        server.log("Remote IP: " + remoteIP, "debug");
+        server.log("Remote Port: " + remotePort, "debug");
       }
 
       server.buildConnection({
         rawConnection: {
-          req: req, 
-          res: res, 
-          method: method, 
-          cookies: cookies, 
-          responseHeaders: responseHeaders, 
+          req: req,
+          res: res,
+          method: method,
+          cookies: cookies,
+          responseHeaders: responseHeaders,
           responseHttpCode: responseHttpCode,
           parsedURL: parsedURL
-        }, 
-        id: fingerprint, 
-        remoteAddress: remoteIP, 
+        },
+        id: fingerprint,
+        remoteAddress: remoteIP,
         remotePort: remotePort}
       ); // will emit "connection"
     });
@@ -219,8 +222,8 @@ var web = function(api, options, next){
           }
         }
       }
-      
-      var stringResponse = JSON.stringify(connection.response, null, 2); 
+
+      var stringResponse = JSON.stringify(connection.response, null, 2);
       if(connection.response.error == null && connection.action != null && connection.params.apiVersion != null && api.actions.actions[connection.action][connection.params.apiVersion].matchExtensionMimeType === true){
         var mime = Mime.lookup(connection.extension);
         connection.rawConnection.responseHeaders.push(['Content-Type', mime]);
@@ -248,7 +251,7 @@ var web = function(api, options, next){
 
   var respondToTrace= function(connection){
     var data = buildRequestorInformation(connection);
-    var stringResponse = JSON.stringify(data, null, 2); 
+    var stringResponse = JSON.stringify(data, null, 2);
     server.sendMessage(connection, stringResponse);
   }
 
@@ -264,12 +267,12 @@ var web = function(api, options, next){
     filePathParts.shift();
     apiPathParts.shift();
     if(pathParts.length > 0){
-      if(pathParts[1] == api.configData.servers.web.urlPathForActions){ 
-        requestMode = 'api'; 
+      if(pathParts[1] == api.configData.servers.web.urlPathForActions){
+        requestMode = 'api';
         apiPathParts.shift();
       }
-      else if(pathParts[1] == api.configData.servers.web.urlPathForFiles || connection.rawConnection.parsedURL.pathname.indexOf(api.configData.servers.web.urlPathForFiles) === 0){ 
-        requestMode = 'file'; 
+      else if(pathParts[1] == api.configData.servers.web.urlPathForFiles || connection.rawConnection.parsedURL.pathname.indexOf(api.configData.servers.web.urlPathForFiles) === 0){
+        requestMode = 'file';
         filePathParts.shift();
         var i = 1;
         while(i < api.configData.servers.web.urlPathForFiles.split("/").length - 1){
@@ -327,8 +330,8 @@ var web = function(api, options, next){
 
   var fillParamsFromWebRequest = function(connection, varsHash){
     api.params.postVariables.forEach(function(postVar){
-      if(varsHash[postVar] !== undefined && varsHash[postVar] != null){ 
-        connection.params[postVar] = varsHash[postVar]; 
+      if(varsHash[postVar] !== undefined && varsHash[postVar] != null){
+        connection.params[postVar] = varsHash[postVar];
       }
     });
   }
